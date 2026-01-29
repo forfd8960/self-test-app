@@ -124,6 +124,36 @@ impl<'a> MaterialRepository<'a> {
         }
         Ok(materials)
     }
+
+    pub async fn find_by_id(&self, id: Uuid) -> Result<Option<LearningMaterial>, sqlx::Error> {
+        let row = sqlx::query(
+            "SELECT id, user_id, original_filename, storage_path, file_type, file_size_bytes, uploaded_at, extracted_text_status, extracted_text FROM learning_materials WHERE id = $1",
+        )
+        .bind(id)
+        .fetch_optional(self.pool)
+        .await?;
+
+        if let Some(row) = row {
+            Ok(Some(LearningMaterial {
+                id: row.try_get("id")?,
+                user_id: row.try_get("user_id")?,
+                original_filename: row.try_get("original_filename")?,
+                storage_path: row.try_get("storage_path")?,
+                file_type: row.try_get("file_type")?,
+                file_size_bytes: row.try_get("file_size_bytes")?,
+                uploaded_at: row.try_get("uploaded_at")?,
+                extracted_text_status: match row.try_get::<String, _>("extracted_text_status")?.as_str() {
+                    "pending" => ExtractStatus::Pending,
+                    "processing" => ExtractStatus::Processing,
+                    "ready" => ExtractStatus::Ready,
+                    _ => ExtractStatus::Failed,
+                },
+                extracted_text: row.try_get("extracted_text")?,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 pub struct GenerationRepository<'a> {

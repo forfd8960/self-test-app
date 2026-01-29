@@ -34,3 +34,10 @@ export async function createGenerationJob(
 ): Promise<GenerationJob> {
   return api.post<GenerationJob, GenerationRequest>("/generation", payload, token ?? undefined);
 }
+
+export async function getGenerationJob(
+    jobId: string,
+    token: string | null
+): Promise<GenerationJob> {
+    return api.get<GenerationJob>(`/generation/${jobId}`, token ?? undefined);
+}

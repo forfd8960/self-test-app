@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Multipart, State},
+    extract::{Multipart, State, Extension},
     http::HeaderMap,
     routing::post,
     Json, Router,
@@ -8,7 +8,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::{
-    api::{middleware::auth::require_user_id, router::AppState},
+    api::{middleware::auth::AuthUser, router::AppState},
     domain::error::AppError,
     infra::repositories::MaterialRepository,
     services::material_service::MaterialService,
@@ -30,10 +30,11 @@ pub fn router() -> Router<AppState> {
 
 async fn upload_material(
     State(state): State<AppState>,
+    Extension(user): Extension<AuthUser>,
     headers: HeaderMap,
     mut multipart: Multipart,
 ) -> Result<Json<MaterialResponse>, AppError> {
-    let user_id = require_user_id(&headers, &state.config.jwt_secret)?;
+    let user_id = user.id;
 
     let mut filename: Option<String> = None;
     let mut bytes: Option<Vec<u8>> = None;
@@ -64,9 +65,9 @@ async fn upload_material(
 
 async fn list_materials(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(user): Extension<AuthUser>,
 ) -> Result<Json<Vec<MaterialResponse>>, AppError> {
-    let user_id = require_user_id(&headers, &state.config.jwt_secret)?;
+    let user_id = user.id;
 
     let service = MaterialService::new(state.storage.as_ref(), MaterialRepository::new(&state.pool));
     let materials = service.list_user_materials(user_id).await?;
