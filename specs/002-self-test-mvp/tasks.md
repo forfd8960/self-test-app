@@ -28,7 +28,7 @@ description: "Task list for Self Test App MVP"
 - [ ] T007 Implement structured error types in backend/src/domain/error.rs
 - [ ] T008 [P] Add DB pool setup in backend/src/infra/db.rs
 - [ ] T009 [P] Add file storage utilities in backend/src/infra/storage.rs
-- [ ] T010 [P] Add MiniMax client wrapper in backend/src/infra/minimax.rs
+- [ ] T010 [P] Add OpenAPI-compatible AI client wrapper in backend/src/infra/ai_client.rs (model/base URL from env)
 - [ ] T011 Create auth middleware in backend/src/api/middleware/auth.rs
 - [ ] T012 Create API router base in backend/src/api/router.rs
 - [ ] T013 Create shared API response types in backend/src/api/response.rs

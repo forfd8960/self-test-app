@@ -213,22 +213,22 @@ components:
   schemas:
     RegisterRequest:
       type: object
-      required: [email, password]
+      required: [username, password]
       properties:
-        email:
+        username:
           type: string
-          format: email
+          minLength: 3
         password:
           type: string
           minLength: 8
 
     LoginRequest:
       type: object
-      required: [email, password]
+      required: [username, password]
       properties:
-        email:
+        username:
           type: string
-          format: email
+          minLength: 3
         password:
           type: string
 

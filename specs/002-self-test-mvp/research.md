@@ -2,10 +2,10 @@
 
 ## Decisions
 
-### AI Provider Integration (MiniMax-M2.1)
-- **Decision**: Use MiniMax Anthropic-compatible API with base URL `https://api.minimaxi.com/anthropic` and model `MiniMax-M2.1`.
-- **Rationale**: Documented compatibility and stable request/response schema for the M2.1 model, with clear auth and parameter constraints.
-- **Alternatives considered**: MiniMax native text endpoint `/v1/text/chatcompletion_v2` (more provider-specific); OpenAI-compatible API (not selected due to incomplete docs for M2.1 in this project context).
+### AI Provider Integration (OpenAPI-compatible client)
+- **Decision**: Use an OpenAPI-compatible AI client with base URL and model configured via environment variables.
+- **Rationale**: Keeps the integration provider-agnostic and allows switching models/providers without code changes.
+- **Alternatives considered**: Hard-coded MiniMax endpoints or model identifiers (less flexible).
 
 ### AI Request Reliability
 - **Decision**: Implement retries with exponential backoff + jitter for 429/5xx and network errors; enforce client-side RPM/TPM budgeting.

@@ -17,9 +17,9 @@ Create `.env` files for backend and frontend as needed.
 DATABASE_URL=postgres://postgres:postgres@localhost:5432/self_test
 JWT_SECRET=change-me
 JWT_REFRESH_SECRET=change-me
-MINIMAX_API_KEY=your_minimax_key
-MINIMAX_BASE_URL=https://api.minimaxi.com/anthropic
-MINIMAX_MODEL=MiniMax-M2.1
+AI_API_KEY=your_ai_key
+AI_BASE_URL=https://api.example.com/v1
+AI_MODEL=your-model-id
 UPLOAD_DIR=./uploads
 ```
 

@@ -81,7 +81,7 @@ As a returning user, I want to view my past test results so that I can track pro
 
 ### Functional Requirements
 
-- **FR-001**: System MUST allow users to register and log in using credentials and issue a JWT for authenticated access.
+- **FR-001**: System MUST allow users to register and log in using a username + password and issue a JWT for authenticated access.
 - **FR-002**: System MUST allow authenticated users to upload learning materials in PDF, DOCX, or TXT format.
 - **FR-003**: System MUST reject unsupported file types and provide a user-readable error message.
 - **FR-004**: Users MUST be able to configure question generation parameters, including counts for multiple-choice and fill-in-the-blank questions.
@@ -117,6 +117,6 @@ As a returning user, I want to view my past test results so that I can track pro
 
 ## Assumptions
 
-- Authentication uses username + password with JWT-based sessions.
+- Authentication uses username + password with JWT-based sessions (no email).
 - The initial release supports PDF, DOCX, and TXT uploads only.
 - Feedback is generated in the same language as the uploaded material when possible.
