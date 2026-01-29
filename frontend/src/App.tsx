@@ -9,7 +9,8 @@ import { TakeTest } from './features/tests/pages/TakeTest';
 import { useAuthStore } from './features/auth/store';
 import { DashboardLayout } from './layouts/DashboardLayout';
 import { HomePage } from './features/dashboard/pages/HomePage';
-import { HistoryPage } from './features/dashboard/pages/HistoryPage';
+import { HistoryListPage } from './features/history/pages/HistoryListPage';
+import { HistoryDetailPage } from './features/history/pages/HistoryDetailPage';
 import { LandingPage } from './features/dashboard/pages/LandingPage';
 
 // Simple protected route wrapper
@@ -39,7 +40,8 @@ const App = () => {
            
            <Route path="/upload" element={<ProtectedRoute><UploadMaterial /></ProtectedRoute>} />
            <Route path="/generate" element={<ProtectedRoute><GenerationSetup /></ProtectedRoute>} />
-           <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+           <Route path="/history" element={<ProtectedRoute><HistoryListPage /></ProtectedRoute>} />
+           <Route path="/history/:id" element={<ProtectedRoute><HistoryDetailPage /></ProtectedRoute>} />
            <Route path="/questions/:setId" element={<ProtectedRoute><QuestionListPage /></ProtectedRoute>} />
            <Route path="/test/:setId" element={<ProtectedRoute><TakeTest /></ProtectedRoute>} />
         </Route>

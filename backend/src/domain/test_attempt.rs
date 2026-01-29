@@ -7,7 +7,9 @@ pub struct TestAttempt {
     pub id: Uuid,
     pub user_id: Uuid,
     pub question_set_id: Uuid,
+    #[serde(with = "time::serde::iso8601")]
     pub started_at: OffsetDateTime,
+    #[serde(default, with = "time::serde::iso8601::option")]
     pub submitted_at: Option<OffsetDateTime>,
     pub score_percent: Option<f32>,
     pub feedback_summary: Option<String>,
@@ -48,4 +50,20 @@ pub struct AnswerResult {
     pub is_correct: bool,
     pub correct_answer: String,
     pub explanation: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TestAttemptDetail {
+    pub attempt: TestAttempt,
+    pub answers: Vec<AttemptAnswerDetail>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct AttemptAnswerDetail {
+    pub question_id: Uuid,
+    pub user_response: String,
+    pub is_correct: bool,
+    pub correct_answer: String,
+    pub explanation: Option<String>,
+    pub prompt: String,
 }

@@ -88,19 +88,19 @@ description: "Task list for Self Test App MVP"
 
 ### Tests for User Story 2
 
-- [ ] T039 [P] [US2] Backend integration tests for test submission in backend/tests/test_attempts_flow.rs
-- [ ] T040 [P] [US2] Frontend test-taking flow tests in frontend/tests/test_taking.spec.tsx
+- [x] T039 [P] [US2] Backend integration tests for test submission in backend/tests/test_attempts_flow.rs
+- [x] T040 [P] [US2] Frontend test-taking flow tests in frontend/tests/test_taking.spec.tsx
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Implement TestAttempt and Answer models in backend/src/domain/test_attempt.rs
-- [ ] T042 [US2] Implement scoring service in backend/src/services/scoring_service.rs
-- [ ] T043 [US2] Implement feedback generation in backend/src/services/feedback_service.rs
-- [ ] T044 [US2] Implement test submission routes in backend/src/api/tests.rs
-- [ ] T045 [US2] Add SQLx queries for test attempts in backend/src/infra/repositories.rs
-- [ ] T046 [P] [US2] Build test-taking UI in frontend/src/features/tests/pages
-- [ ] T047 [US2] Implement test submission API in frontend/src/features/tests/api.ts
-- [ ] T048 [US2] Build score + feedback UI in frontend/src/features/tests/components/ScoreSummary.tsx
+- [x] T041 [P] [US2] Implement TestAttempt and Answer models in backend/src/domain/test_attempt.rs
+- [x] T042 [US2] Implement scoring service in backend/src/services/scoring_service.rs
+- [x] T043 [US2] Implement feedback generation in backend/src/services/feedback_service.rs
+- [x] T044 [US2] Implement test submission routes in backend/src/api/tests.rs
+- [x] T045 [US2] Add SQLx queries for test attempts in backend/src/infra/repositories.rs
+- [x] T046 [P] [US2] Build test-taking UI in frontend/src/features/tests/pages
+- [x] T047 [US2] Implement test submission API in frontend/src/features/tests/api.ts
+- [x] T048 [US2] Build score + feedback UI in frontend/src/features/tests/components/ScoreSummary.tsx
 
 **Checkpoint**: User Story 2 functional and independently testable
 
@@ -114,17 +114,17 @@ description: "Task list for Self Test App MVP"
 
 ### Tests for User Story 3
 
-- [ ] T049 [P] [US3] Backend integration tests for history endpoints in backend/tests/history_flow.rs
-- [ ] T050 [P] [US3] Frontend history flow tests in frontend/tests/history.spec.tsx
+- [x] T049 [P] [US3] Backend integration tests for history endpoints in backend/tests/history_flow.rs
+- [x] T050 [P] [US3] Frontend history flow tests in frontend/tests/history.spec.tsx
 
 ### Implementation for User Story 3
 
-- [ ] T051 [US3] Implement history query service in backend/src/services/history_service.rs
-- [ ] T052 [US3] Implement history routes in backend/src/api/history.rs
-- [ ] T053 [US3] Add SQLx queries for history detail in backend/src/infra/repositories.rs
-- [ ] T054 [P] [US3] Build history list UI in frontend/src/features/history/pages
-- [ ] T055 [P] [US3] Build history detail UI in frontend/src/features/history/components/HistoryDetail.tsx
-- [ ] T056 [US3] Implement history API client in frontend/src/features/history/api.ts
+- [x] T051 [US3] Implement history query service in backend/src/services/history_service.rs
+- [x] T052 [US3] Implement history routes in backend/src/api/history.rs
+- [x] T053 [US3] Add SQLx queries for history detail in backend/src/infra/repositories.rs
+- [x] T054 [P] [US3] Build history list UI in frontend/src/features/history/pages
+- [x] T055 [P] [US3] Build history detail UI in frontend/src/features/history/components/HistoryDetail.tsx
+- [x] T056 [US3] Implement history API client in frontend/src/features/history/api.ts
 
 **Checkpoint**: User Story 3 functional and independently testable
 

@@ -6,6 +6,8 @@ use thiserror::Error;
 pub enum AppError {
     #[error("unauthorized")]
     Unauthorized,
+    #[error("forbidden")]
+    Forbidden,
     #[error("bad request: {0}")]
     BadRequest(String),
     #[error("rate limit exceeded")]
@@ -28,6 +30,7 @@ impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
         let (status, code, message) = match self {
             AppError::Unauthorized => (StatusCode::UNAUTHORIZED, "unauthorized", self.to_string()),
+            AppError::Forbidden => (StatusCode::FORBIDDEN, "forbidden", self.to_string()),
             AppError::BadRequest(_) => (StatusCode::BAD_REQUEST, "bad_request", self.to_string()),
             AppError::RateLimited => (StatusCode::TOO_MANY_REQUESTS, "rate_limited", self.to_string()),
             AppError::NotFound => (StatusCode::NOT_FOUND, "not_found", self.to_string()),

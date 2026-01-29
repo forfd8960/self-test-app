@@ -178,13 +178,23 @@ Text:
         })?;
 
     // 4. Parse JSON
-    // Clean potential markdown blocks just in case
-    let clean_json = raw_response
-        .trim()
-        .trim_start_matches("```json")
-        .trim_start_matches("```")
-        .trim_end_matches("```")
-        .trim();
+    // Clean potential markdown blocks and <think> sections
+    let mut json_candidate = raw_response.as_str();
+
+    // Remove <think> section if present
+    if let Some(end_think) = json_candidate.find("</think>") {
+        json_candidate = &json_candidate[end_think + 8..];
+    }
+
+    // Find the outer-most braces to isolate JSON from any remaining markdown or text
+    let start = json_candidate.find('{').unwrap_or(0);
+    let end = json_candidate.rfind('}').map(|i| i + 1).unwrap_or(json_candidate.len());
+
+    let clean_json = if start < end {
+        &json_candidate[start..end]
+    } else {
+        json_candidate.trim()
+    };
 
     let ai_data: AiResponse = serde_json::from_str(clean_json).map_err(|e| {
         println!("JSON Parse Error: {:?} \nInput: {}", e, clean_json);
