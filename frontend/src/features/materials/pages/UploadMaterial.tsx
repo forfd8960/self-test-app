@@ -39,7 +39,8 @@ export function UploadMaterialPage() {
     body.append("file", file);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/materials`, {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+      const response = await fetch(`${baseUrl}/materials`, {
         method: "POST",
         body,
         headers: {

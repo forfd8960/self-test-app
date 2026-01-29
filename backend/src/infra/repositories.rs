@@ -266,7 +266,7 @@ impl<'a> TestAttemptRepository<'a> {
 
     pub async fn create_attempt(&self, attempt: &TestAttempt) -> Result<(), sqlx::Error> {
         sqlx::query(
-            "INSERT INTO test_attempts (id, user_id, question_set_id, started_at, submitted_at, score_percent, feedback_summary) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+            "INSERT INTO test_attempts (id, user_id, question_set_id, started_at, completed_at, score, feedback_summary) VALUES ($1,$2,$3,$4,$5,$6,$7)",
         )
         .bind(attempt.id)
         .bind(attempt.user_id)
@@ -284,7 +284,7 @@ impl<'a> TestAttemptRepository<'a> {
         // Bulk insert would be better, but loop is fine for MVP
         for answer in answers {
             sqlx::query(
-                "INSERT INTO answers (id, attempt_id, question_id, response, is_correct) VALUES ($1,$2,$3,$4,$5)",
+                "INSERT INTO answers (id, attempt_id, question_id, user_answer, is_correct) VALUES ($1,$2,$3,$4,$5)",
             )
             .bind(answer.id)
             .bind(answer.attempt_id)
@@ -295,6 +295,73 @@ impl<'a> TestAttemptRepository<'a> {
             .await?;
         }
         Ok(())
+    }
+
+    pub async fn find_by_user_id(&self, user_id: Uuid) -> Result<Vec<TestAttempt>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT id, user_id, question_set_id, started_at, completed_at, score, feedback_summary FROM test_attempts WHERE user_id = $1 ORDER BY completed_at DESC",
+        )
+        .bind(user_id)
+        .fetch_all(self.pool)
+        .await?;
+
+        let mut attempts = Vec::new();
+        for row in rows {
+            attempts.push(TestAttempt {
+                id: row.try_get("id")?,
+                user_id: row.try_get("user_id")?,
+                question_set_id: row.try_get("question_set_id")?,
+                started_at: row.try_get("started_at")?,
+                submitted_at: row.try_get("completed_at").ok(),
+                score_percent: row.try_get("score").ok(),
+                feedback_summary: row.try_get("feedback_summary").ok(),
+            });
+        }
+        Ok(attempts)
+    }
+
+    pub async fn find_by_id(&self, id: Uuid) -> Result<Option<TestAttempt>, sqlx::Error> {
+        let row = sqlx::query(
+            "SELECT id, user_id, question_set_id, started_at, completed_at, score, feedback_summary FROM test_attempts WHERE id = $1",
+        )
+        .bind(id)
+        .fetch_optional(self.pool)
+        .await?;
+
+        if let Some(row) = row {
+            Ok(Some(TestAttempt {
+                id: row.try_get("id")?,
+                user_id: row.try_get("user_id")?,
+                question_set_id: row.try_get("question_set_id")?,
+                started_at: row.try_get("started_at")?,
+                submitted_at: row.try_get("completed_at").ok(),
+                score_percent: row.try_get("score").ok(),
+                feedback_summary: row.try_get("feedback_summary").ok(),
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub async fn find_answers_by_attempt_id(&self, attempt_id: Uuid) -> Result<Vec<Answer>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT id, attempt_id, question_id, user_answer, is_correct FROM answers WHERE attempt_id = $1",
+        )
+        .bind(attempt_id)
+        .fetch_all(self.pool)
+        .await?;
+
+        let mut answers = Vec::new();
+        for row in rows {
+            answers.push(Answer {
+                id: row.try_get("id")?,
+                attempt_id: row.try_get("attempt_id")?,
+                question_id: row.try_get("question_id")?,
+                response: row.try_get("user_answer")?,
+                is_correct: row.try_get("is_correct")?,
+            });
+        }
+        Ok(answers)
     }
 }
 

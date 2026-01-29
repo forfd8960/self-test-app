@@ -54,12 +54,36 @@ impl<'a> MaterialService<'a> {
         let file_path = self.storage.material_path(&material_id.to_string(), &extension);
         let file_size_bytes = content.len() as i64;
 
-        fs::write(&file_path, content)
+        fs::write(&file_path, &content)
             .await
             .map_err(|e| {
                 tracing::error!("Failed to write material file: {:?}", e);
                 AppError::Internal
             })?;
+
+        // Extract Text
+        let (extracted_text, status) = match extension.as_str() {
+            "txt" => match String::from_utf8(content) {
+                Ok(text) => (Some(text), ExtractStatus::Ready),
+                Err(_) => (None, ExtractStatus::Failed),
+            },
+            "pdf" => {
+                // Since pdf-extract is sync, we should ideally run it in blocking task
+                let path_clone = file_path.clone();
+                let output = tokio::task::spawn_blocking(move || {
+                    pdf_extract::extract_text(&path_clone)
+                }).await.map_err(|_| AppError::Internal)?;
+                
+                match output {
+                    Ok(text) => (Some(text), ExtractStatus::Ready),
+                    Err(e) => {
+                        tracing::error!("PDF Extraction failed: {:?}", e);
+                        (None, ExtractStatus::Failed)
+                    }
+                }
+            },
+            _ => (None, ExtractStatus::Pending), // Docx or others not yet supported
+        };
 
         let material = LearningMaterial {
             id: material_id,
@@ -69,8 +93,8 @@ impl<'a> MaterialService<'a> {
             file_type: extension,
             file_size_bytes,
             uploaded_at: now_utc(),
-            extracted_text_status: ExtractStatus::Pending,
-            extracted_text: None,
+            extracted_text_status: status,
+            extracted_text,
         };
 
         self.materials
