@@ -68,7 +68,9 @@ As a returning user, I want to view my past test results so that I can track pro
 ### Edge Cases
 
 - Uploading an unsupported file type or a corrupted file is rejected with a clear message.
+- Uploading a file larger than 5MB is rejected with a clear message.
 - Generation fails or times out; user sees a retry option and the system does not create a partial test.
+- User hits AI rate limit (10 requests/min); generation is deferred or rejected with a clear message.
 - User submits a test with unanswered questions; scoring handles blank answers explicitly.
 - Network interruption during upload or test submission results in a recoverable state (user can retry without data loss).
 
@@ -84,8 +86,12 @@ As a returning user, I want to view my past test results so that I can track pro
 - **FR-001**: System MUST allow users to register and log in using a username + password and issue a JWT for authenticated access.
 - **FR-002**: System MUST allow authenticated users to upload learning materials in PDF, DOCX, or TXT format.
 - **FR-003**: System MUST reject unsupported file types and provide a user-readable error message.
+- **FR-003a**: System MUST reject uploads larger than 5MB and provide a user-readable error message.
 - **FR-004**: Users MUST be able to configure question generation parameters, including counts for multiple-choice and fill-in-the-blank questions.
 - **FR-005**: System MUST generate questions and answers based on uploaded materials and persist them with the user’s configuration.
+- **FR-005a**: System MUST enforce a per-user AI request rate limit of 10 requests per minute.
+- **FR-005b**: System MUST retry AI requests with exponential backoff on transient failures.
+- **FR-005c**: System MUST process AI generation as a background job and expose polling for status updates.
 - **FR-006**: System MUST present a generated test page listing the questions in a consumable format.
 - **FR-007**: Users MUST be able to submit answers for a generated test.
 - **FR-008**: System MUST compute a score and provide constructive feedback referencing weak and strong areas.
@@ -118,5 +124,7 @@ As a returning user, I want to view my past test results so that I can track pro
 ## Assumptions
 
 - Authentication uses username + password with JWT-based sessions (no email).
+- JWT access tokens expire after 6 hours.
+- Upload size limit is 5MB per file.
 - The initial release supports PDF, DOCX, and TXT uploads only.
 - Feedback is generated in the same language as the uploaded material when possible.

@@ -1,0 +1,2 @@
+-- Baseline migration for Self Test App MVP.
+-- Tables will be added in later phases.

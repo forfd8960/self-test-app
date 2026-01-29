@@ -8,8 +8,8 @@
 - **Alternatives considered**: Hard-coded MiniMax endpoints or model identifiers (less flexible).
 
 ### AI Request Reliability
-- **Decision**: Implement retries with exponential backoff + jitter for 429/5xx and network errors; enforce client-side RPM/TPM budgeting.
-- **Rationale**: MiniMax imposes RPM/TPM limits and returns rate-limit errors until window resets; backoff reduces error storms.
+- **Decision**: Implement retries with exponential backoff + jitter for 429/5xx and network errors; enforce per-user AI rate limit at 10 requests/minute.
+- **Rationale**: Rate limits and backoff improve stability and prevent user-level abuse; backoff reduces error storms.
 - **Alternatives considered**: No retries (lower reliability), immediate retries (amplifies throttling).
 
 ### Generation Workflow

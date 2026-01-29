@@ -68,6 +68,8 @@ paths:
                 $ref: '#/components/schemas/Material'
         '400':
           description: Invalid file
+        '413':
+          description: File too large (max 5MB)
     get:
       summary: List user materials
       security:
@@ -100,6 +102,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GenerationJob'
+        '429':
+          description: Rate limit exceeded (10 requests/min)
     get:
       summary: List question sets
       security:

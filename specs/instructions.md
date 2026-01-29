@@ -37,3 +37,24 @@
 - Question Generation: Integrate with an AI service (e.g., MiniMax) for question generation based on uploaded materials.
 - Testing: Unit tests and integration tests for both backend and frontend components.
 - Deployment: local running.
+
+## Limitations
+
+- User can not upload files which larger than 5MB.
+- The AI model may have rate limits; implement retries with exponential backoff for robustness.
+- Set the user level rate limit for AI requests to 10 requests per minute.
+- The AI calls for question generation may be long-running; implement background job processing with polling for status updates.
+- JWT tokens should exipre after 6 huors.
+
+## Database
+
+- Use PostgreSQL for data persistence.
+- the connect string is: postgres://postgres:postgres@localhost:5432/selftestapp
+
+## UI Design
+
+- Follow Google's Material Design 3 (M3) standards.
+- Build the UI for Self Test Application using React with the latest Material library.
+- Components: Include a Navigation Rail/Drawer, Top App Bar, and Elevating Action Buttons.
+- Visuals: Follow the M3 color system (Primary, Secondary, Tertiary) with support for light/dark mode.
+- Usability: Prioritize accessibility (ARIA labels), responsive layouts (mobile/desktop), and intuitive spacing (Material spacing scale).
