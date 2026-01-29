@@ -7,7 +7,7 @@ use tower_http::{cors::CorsLayer, trace::TraceLayer};
 use uuid::Uuid;
 
 use crate::{
-    api::{auth, generation, materials, tests},
+    api::{auth, generation, materials, tests, middleware},
     config::AppConfig,
     infra::{ai_client::AiClient, rate_limit::RateLimiter, storage::FileStorage},
     services::generation_service::GenerationJob,
@@ -29,11 +29,15 @@ pub fn create_router(state: AppState) -> Router {
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
         .allow_headers(tower_http::cors::Any);
 
-    Router::new()
-        .nest("/auth", auth::router())
+    let protected_routes = Router::new()
         .nest("/materials", materials::router())
         .nest("/generation", generation::router())
         .nest("/tests", tests::router())
+        .layer(axum::middleware::from_fn_with_state(state.clone(), middleware::auth::auth_middleware));
+
+    Router::new()
+        .nest("/auth", auth::router())
+        .merge(protected_routes)
         .with_state(state)
         .layer(TraceLayer::new_for_http())
         .layer(cors)

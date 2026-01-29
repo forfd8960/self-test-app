@@ -1,5 +1,15 @@
 import React from 'react';
 import { TestResultResponse } from '../api';
+import {
+  Box,
+  Paper,
+  Typography,
+  Button,
+  Chip,
+  Divider,
+} from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 interface ScoreSummaryProps {
   result: TestResultResponse;
@@ -8,56 +18,83 @@ interface ScoreSummaryProps {
 
 export const ScoreSummary: React.FC<ScoreSummaryProps> = ({ result, onHome }) => {
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div className="bg-white p-6 rounded-lg shadow-md text-center border border-gray-200">
-        <h2 className="text-2xl font-bold text-gray-800">Test Completed!</h2>
-        <div className={`text-5xl font-extrabold my-4 ${result.score_percent >= 70 ? 'text-green-600' : 'text-orange-500'}`}>
-          {result.score_percent.toFixed(0)}%
-        </div>
-        <div className="bg-blue-50 p-4 rounded text-left border border-blue-100">
-          <h4 className="font-semibold text-blue-800 mb-2">AI Feedback:</h4>
-          <p className="text-gray-700 whitespace-pre-wrap">{result.feedback}</p>
-        </div>
-      </div>
+    <Box sx={{ maxWidth: 800, mx: 'auto', mt: 4, mb: 4 }}>
+      <Paper elevation={3} sx={{ p: 4, textAlign: 'center', mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          Test Completed!
+        </Typography>
+        
+        <Box sx={{ my: 3 }}>
+            <Typography variant="h2" color={result.score_percent >= 70 ? 'success.main' : 'warning.main'} fontWeight="bold">
+                {result.score_percent.toFixed(0)}%
+            </Typography>
+        </Box>
 
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-gray-800">Answer Key</h3>
+        <Paper variant="outlined" sx={{ p: 3, bgcolor: 'primary.50', borderColor: 'primary.100', textAlign: 'left' }}>
+            <Typography variant="h6" color="primary.main" gutterBottom>
+                AI Feedback
+            </Typography>
+            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                {result.feedback}
+            </Typography>
+        </Paper>
+      </Paper>
+
+      <Typography variant="h5" gutterBottom sx={{ mb: 2 }}>
+        Answer Key
+      </Typography>
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {result.correct_answers.map((ans, idx) => (
-          <div 
+          <Paper 
             key={ans.question_id} 
-            className={`p-4 rounded-lg border ${ans.is_correct ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}
+            elevation={1}
+            sx={{ 
+                p: 3, 
+                bgcolor: ans.is_correct ? 'success.50' : 'error.50',
+                border: 1,
+                borderColor: ans.is_correct ? 'success.200' : 'error.200'
+            }}
           >
-            <div className="flex justify-between items-start mb-2">
-              <span className="font-bold text-gray-700">Question {idx + 1}</span>
-              <span className={`px-2 py-1 rounded text-xs font-bold ${ans.is_correct ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
-                {ans.is_correct ? 'CORRECT' : 'INCORRECT'}
-              </span>
-            </div>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                Question {idx + 1}
+              </Typography>
+              <Chip 
+                icon={ans.is_correct ? <CheckCircleIcon /> : <CancelIcon />}
+                label={ans.is_correct ? "CORRECT" : "INCORRECT"}
+                color={ans.is_correct ? "success" : "error"}
+                size="small"
+              />
+            </Box>
             
             {!ans.is_correct && (
-              <div className="mt-2 text-sm">
-                <p className="font-semibold text-red-700">Correct Answer:</p>
-                <p className="text-gray-800">{ans.correct_answer}</p>
-              </div>
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="subtitle2" color="error.dark">Correct Answer:</Typography>
+                <Typography variant="body2">{ans.correct_answer}</Typography>
+              </Box>
             )}
             
             {ans.explanation && (
-              <div className="mt-2 text-sm text-gray-600 border-t border-gray-200 pt-2">
-                <span className="font-semibold">Explanation:</span> {ans.explanation}
-              </div>
+              <>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" color="text.secondary">Explanation:</Typography>
+                <Typography variant="body2" color="text.secondary">{ans.explanation}</Typography>
+              </>
             )}
-          </div>
+          </Paper>
         ))}
-      </div>
+      </Box>
 
-      <div className="flex justify-center pt-4">
-        <button 
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <Button 
+          variant="contained" 
+          size="large" 
           onClick={onHome}
-          className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium transition-colors"
         >
           Back to Dashboard
-        </button>
-      </div>
-    </div>
+        </Button>
+      </Box>
+    </Box>
   );
 };

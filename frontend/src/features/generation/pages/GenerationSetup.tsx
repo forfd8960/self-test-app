@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../auth/store";
-import { createGenerationJob } from "../api";
+import { createGenerationJob, getGenerationJob } from "../api";
 import { listMaterials, Material } from "../../materials/api";
 import {
   Container,
@@ -16,7 +16,6 @@ import {
   MenuItem,
   Alert,
   CircularProgress,
-  Slider,
   Grid,
 } from "@mui/material";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -29,11 +28,12 @@ export function GenerationSetupPage() {
   const [loadingMaterials, setLoadingMaterials] = useState(false);
   
   const [materialId, setMaterialId] = useState("");
-  const [mcqSingle, setMcqSingle] = useState(10);
-  const [mcqMulti, setMcqMulti] = useState(5);
-  const [fillBlank, setFillBlank] = useState(5);
+  const [mcqSingle, setMcqSingle] = useState(1);
+  const [mcqMulti, setMcqMulti] = useState(1);
+  const [fillBlank, setFillBlank] = useState(1);
   
   const [generationLoading, setGenerationLoading] = useState(false);
+  const [jobId, setJobId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +44,10 @@ export function GenerationSetupPage() {
       .then((data) => {
         setMaterials(data);
         if (data.length > 0) {
-          setMaterialId(data[0].id);
+            // Find first ready material
+             const ready = data.find(m => m.extracted_text_status === 'ready');
+             if (ready) setMaterialId(ready.id);
+             else if (data.length > 0) setMaterialId(data[0].id);
         }
       })
       .catch((err) => {
@@ -53,6 +56,31 @@ export function GenerationSetupPage() {
       })
       .finally(() => setLoadingMaterials(false));
   }, [token]);
+
+  // Polling Effect
+  useEffect(() => {
+    if (!jobId || !token) return;
+
+    const interval = setInterval(async () => {
+        try {
+            const job = await getGenerationJob(jobId, token);
+            if (job.status === 'ready' && job.question_set_id) {
+                clearInterval(interval);
+                navigate(`/test/${job.question_set_id}`);
+            } else if (job.status === 'failed') {
+                clearInterval(interval);
+                setJobId(null);
+                setGenerationLoading(false);
+                setError(job.error_message || "Generation failed unexpectedly.");
+            }
+            // If queued or generating, continue polling
+        } catch (e) {
+            console.error("Polling error", e);
+        }
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [jobId, token, navigate]);
 
   const handleGenerate = async () => {
     if (!materialId) {
@@ -73,25 +101,11 @@ export function GenerationSetupPage() {
         },
         token
       );
-      
-      // Redirect to a status page or just show success? 
-      // For now, maybe redirect to a list of jobs or stay here with success message?
-      // Since there is no job list page yet, let's just alert success or navigate potentially.
-       navigate(`/test/${job.id}`); // Assuming we want to view the job status/test
-       // NOTE: The user might want to see the job polling status first.
-       // But typically we might go to a "Question Set" page. 
-       // However, strictly adhering to "refine the generate tests page", I'll just show status here or navigate.
-       // Let's assume we want to navigate to the test taking page if ready, or a polling page.
-       // The previous implementation showed: setStatus(`Job ${job.id}: ${job.status}`);
-       // I'll stick to a simple feedback for now, or maybe navigate to home.
-       // The previous turn didn't mention a 'Test' page implementation other than 'GenerationSetup'.
-       // I'll just show an alert for MVP.
-       alert(`Job Started! ID: ${job.id}`);
-       
+      setJobId(job.id);
+      // Don't turn off loading, we are now polling
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Generation failed");
-    } finally {
       setGenerationLoading(false);
+      setError(err instanceof Error ? err.message : "Generation failed");
     }
   };
 
@@ -137,7 +151,7 @@ export function GenerationSetupPage() {
                         onChange={(e) => setMaterialId(e.target.value)}
                     >
                         {materials.map((m) => (
-                            <MenuItem key={m.id} value={m.id}>
+                            <MenuItem key={m.id} value={m.id} disabled={m.extracted_text_status !== 'ready'}>
                                 {m.original_filename} ({m.extracted_text_status})
                             </MenuItem>
                         ))}
@@ -189,7 +203,14 @@ export function GenerationSetupPage() {
                     disabled={generationLoading || !materialId}
                     sx={{ mt: 4, py: 1.5 }}
                 >
-                    {generationLoading ? <CircularProgress size={24} color="inherit" /> : "Start Generation"}
+                    {generationLoading ? (
+                        <>
+                            <CircularProgress size={24} color="inherit" sx={{ mr: 1 }} />
+                            Generating...
+                        </>
+                    ) : (
+                        "Start Generation"
+                    )}
                 </Button>
             </Box>
         )}

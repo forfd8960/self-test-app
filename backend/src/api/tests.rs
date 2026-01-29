@@ -1,12 +1,12 @@
 use axum::{
-    extract::State,
+    extract::{State, Extension},
     http::HeaderMap,
     Json, Router, routing::post,
 };
 use uuid::Uuid;
 
 use crate::{
-    api::{middleware::auth::require_user_id, router::AppState},
+    api::{middleware::auth::AuthUser, router::AppState},
     domain::{
         error::AppError,
         test_attempt::{Answer, SubmitTestRequest, TestAttempt, TestResultResponse},
@@ -21,10 +21,10 @@ pub fn router() -> Router<AppState> {
 
 async fn submit_test(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(user): Extension<AuthUser>,
     Json(payload): Json<SubmitTestRequest>,
 ) -> Result<Json<TestResultResponse>, AppError> {
-    let user_id = require_user_id(&headers, &state.config.jwt_secret)?;
+    let user_id = user.id;
 
     let gen_repo = GenerationRepository::new(&state.pool);
     let attempt_repo = TestAttemptRepository::new(&state.pool);

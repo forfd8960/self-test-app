@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Path, State, Extension},
     http::HeaderMap,
     routing::{get, post},
     Json, Router,
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    api::{middleware::auth::require_user_id, router::AppState},
+    api::{middleware::auth::AuthUser, router::AppState},
     domain::error::AppError,
     infra::repositories::GenerationRepository,
     services::generation_service::{build_generation_config, GenerationJob, GenerationService},
@@ -40,10 +40,11 @@ pub fn router() -> Router<AppState> {
 
 async fn get_questions(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(user): Extension<AuthUser>,
     Path(set_id): Path<Uuid>,
 ) -> Result<Json<Vec<crate::domain::question::Question>>, AppError> {
-    require_user_id(&headers, &state.config.jwt_secret)?; // Ensure authenticated, though maybe ownership check needed too
+    // Verified user ID from middleware
+    let _user_id = user.id;
 
     let repo = GenerationRepository::new(&state.pool);
     let questions = repo.find_questions_by_set_id(set_id).await.map_err(|_| AppError::Internal)?;
@@ -53,10 +54,10 @@ async fn get_questions(
 
 async fn create_job(
     State(state): State<AppState>,
-    headers: HeaderMap,
+    Extension(user): Extension<AuthUser>,
     Json(payload): Json<GenerationRequest>,
 ) -> Result<Json<GenerationJobResponse>, AppError> {
-    let user_id = require_user_id(&headers, &state.config.jwt_secret)?;
+    let user_id = user.id;
 
     if !state.rate_limiter.allow(&user_id.to_string()).await {
         return Err(AppError::RateLimited);
@@ -71,7 +72,7 @@ async fn create_job(
         payload.language,
     );
 
-    let service = GenerationService::new(state.ai_client.as_ref(), GenerationRepository::new(&state.pool), state.generation_jobs.clone());
+    let service = GenerationService::new(state.ai_client.as_ref(), state.pool.clone(), state.generation_jobs.clone());
     let job = service.create_job(config).await?;
 
     Ok(Json(to_job_response(job)))
@@ -81,7 +82,7 @@ async fn get_job(
     State(state): State<AppState>,
     Path(job_id): Path<Uuid>,
 ) -> Result<Json<GenerationJobResponse>, AppError> {
-    let service = GenerationService::new(state.ai_client.as_ref(), GenerationRepository::new(&state.pool), state.generation_jobs.clone());
+    let service = GenerationService::new(state.ai_client.as_ref(), state.pool.clone(), state.generation_jobs.clone());
     let job = service.get_job(job_id).await.ok_or(AppError::NotFound)?;
 
     Ok(Json(to_job_response(job)))
