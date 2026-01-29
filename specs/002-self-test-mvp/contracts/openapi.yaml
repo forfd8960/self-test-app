@@ -1,0 +1,399 @@
+openapi: 3.0.3
+info:
+  title: Self Test App API
+  version: 0.1.0
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Validation error
+  /auth/login:
+    post:
+      summary: Login a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /materials:
+    post:
+      summary: Upload learning material
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Material uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Material'
+        '400':
+          description: Invalid file
+    get:
+      summary: List user materials
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of materials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Material'
+
+  /generation:
+    post:
+      summary: Create generation job
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerationRequest'
+      responses:
+        '202':
+          description: Job created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationJob'
+    get:
+      summary: List question sets
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of question sets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/QuestionSet'
+
+  /generation/{jobId}:
+    get:
+      summary: Get generation job status
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationJob'
+
+  /question-sets/{id}:
+    get:
+      summary: Get question set with questions
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Question set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionSetDetail'
+
+  /tests:
+    post:
+      summary: Submit a test attempt
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestSubmitRequest'
+      responses:
+        '201':
+          description: Test submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestAttempt'
+    get:
+      summary: List test attempts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of attempts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TestAttempt'
+
+  /tests/{id}:
+    get:
+      summary: Get a test attempt detail
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Test attempt detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestAttemptDetail'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
+    Material:
+      type: object
+      properties:
+        id:
+          type: string
+        originalFilename:
+          type: string
+        fileType:
+          type: string
+          enum: [pdf, docx, txt]
+        fileSizeBytes:
+          type: integer
+        uploadedAt:
+          type: string
+          format: date-time
+        extractedTextStatus:
+          type: string
+          enum: [pending, processing, ready, failed]
+
+    GenerationRequest:
+      type: object
+      required: [materialId, mcqSingleCount, mcqMultiCount, fillBlankCount]
+      properties:
+        materialId:
+          type: string
+        mcqSingleCount:
+          type: integer
+          minimum: 0
+        mcqMultiCount:
+          type: integer
+          minimum: 0
+        fillBlankCount:
+          type: integer
+          minimum: 0
+        language:
+          type: string
+
+    GenerationJob:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [queued, generating, ready, failed]
+        questionSetId:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+
+    QuestionSet:
+      type: object
+      properties:
+        id:
+          type: string
+        materialId:
+          type: string
+        status:
+          type: string
+          enum: [queued, generating, ready, failed]
+        createdAt:
+          type: string
+          format: date-time
+
+    Question:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [single, multiple, blank]
+        prompt:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        correctAnswer:
+          type: string
+        explanation:
+          type: string
+
+    QuestionSetDetail:
+      allOf:
+        - $ref: '#/components/schemas/QuestionSet'
+        - type: object
+          properties:
+            questions:
+              type: array
+              items:
+                $ref: '#/components/schemas/Question'
+
+    TestSubmitRequest:
+      type: object
+      required: [questionSetId, answers]
+      properties:
+        questionSetId:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerInput'
+
+    AnswerInput:
+      type: object
+      required: [questionId, response]
+      properties:
+        questionId:
+          type: string
+        response:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+
+    TestAttempt:
+      type: object
+      properties:
+        id:
+          type: string
+        questionSetId:
+          type: string
+        scorePercent:
+          type: number
+        submittedAt:
+          type: string
+          format: date-time
+
+    TestAttemptDetail:
+      allOf:
+        - $ref: '#/components/schemas/TestAttempt'
+        - type: object
+          properties:
+            answers:
+              type: array
+              items:
+                $ref: '#/components/schemas/AnswerResult'
+            feedbackSummary:
+              type: string
+
+    AnswerResult:
+      type: object
+      properties:
+        questionId:
+          type: string
+        response:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        isCorrect:
+          type: boolean
