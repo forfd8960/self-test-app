@@ -24,7 +24,7 @@ Deliver a self-test web app where users register/login with username/password, u
 **Target Platform**: Local development deployment (macOS/Linux)  
 **Project Type**: Web application (backend + frontend)  
 **Performance Goals**: Generate questions for standard docs (≤20 pages) within 5 minutes; score/feedback within 1 minute of submission  
-**Constraints**: JWT auth (username/password), local file storage, latest dependencies, AI calls may be long-running (use background job/polling). AI model and base URL must be configurable via environment variables.  
+**Constraints**: JWT auth (username/password) with 6-hour expiry; local file storage; upload size limit 5MB; AI calls may be long-running (use background job/polling); AI retries with exponential backoff; per-user AI rate limit 10 requests/minute. AI model and base URL must be configurable via environment variables.  
 **Scale/Scope**: MVP for single-tenant use; tens to hundreds of active users; 1–2 primary flows (generate, take test, history)
 
 ## Constitution Check
