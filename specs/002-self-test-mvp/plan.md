@@ -7,7 +7,7 @@
 
 ## Summary
 
-Deliver a self-test web app where users register/login, upload learning materials (PDF/DOCX/TXT), configure question counts, generate AI-based questions, take tests, and receive scoring and feedback with history. The implementation uses a Rust (Axum + SQLx) backend, a React + TypeScript + Vite + Tailwind + Zustand frontend, PostgreSQL for persistence, local file storage, and MiniMax (MiniMax-M2.1) for AI question/feedback generation.
+Deliver a self-test web app where users register/login with username/password, upload learning materials (PDF/DOCX/TXT), configure question counts, generate AI-based questions, take tests, and receive scoring and feedback with history. The implementation uses a Rust (Axum + SQLx) backend, a React + TypeScript + Vite + Tailwind + Zustand frontend, PostgreSQL for persistence, local file storage, and an OpenAPI-compatible AI client with model and base URL configured via environment variables.
 
 ## Technical Context
 
@@ -18,13 +18,13 @@ Deliver a self-test web app where users register/login, upload learning material
 -->
 
 **Language/Version**: Rust (latest stable, edition 2024), TypeScript (latest), Node.js LTS  
-**Primary Dependencies**: Axum, SQLx, Tokio, serde, jsonwebtoken/argon2; React, Zustand, Vite, Tailwind CSS  
+**Primary Dependencies**: Axum, SQLx, Tokio, serde, jsonwebtoken/argon2, OpenAPI-compatible AI client; React, Zustand, Vite, Tailwind CSS  
 **Storage**: PostgreSQL (primary), local file system for uploads  
 **Testing**: cargo test + integration tests; Vitest/React Testing Library; optional Playwright for flows  
 **Target Platform**: Local development deployment (macOS/Linux)  
 **Project Type**: Web application (backend + frontend)  
 **Performance Goals**: Generate questions for standard docs (≤20 pages) within 5 minutes; score/feedback within 1 minute of submission  
-**Constraints**: JWT auth, local file storage, latest dependencies, AI calls may be long-running (use background job/polling)  
+**Constraints**: JWT auth (username/password), local file storage, latest dependencies, AI calls may be long-running (use background job/polling). AI model and base URL must be configurable via environment variables.  
 **Scale/Scope**: MVP for single-tenant use; tens to hundreds of active users; 1–2 primary flows (generate, take test, history)
 
 ## Constitution Check
