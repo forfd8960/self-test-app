@@ -8,3 +8,21 @@
 frontend/node_modules/
 
 uploads/
+
+# Node.js
+node_modules/
+dist/
+build/
+*.log
+.env*
+
+# Rust
+target/
+
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

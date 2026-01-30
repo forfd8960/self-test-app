@@ -9,6 +9,7 @@ use crate::{
         learning_material::{ExtractStatus, LearningMaterial},
     },
     infra::{repositories::{now_utc, MaterialRepository}, storage::FileStorage},
+    services::extraction_service::ExtractionService,
 };
 
 const MAX_UPLOAD_BYTES: usize = 5 * 1024 * 1024;
@@ -39,7 +40,8 @@ impl<'a> MaterialService<'a> {
             .unwrap_or("")
             .to_lowercase();
 
-        if !["pdf", "docx", "txt"].contains(&extension.as_str()) {
+        let extraction_service = ExtractionService::new();
+        if !extraction_service.is_supported(&extension) {
             return Err(AppError::BadRequest("unsupported file type".to_string()));
         }
 
@@ -61,28 +63,16 @@ impl<'a> MaterialService<'a> {
                 AppError::Internal
             })?;
 
-        // Extract Text
-        let (extracted_text, status) = match extension.as_str() {
-            "txt" => match String::from_utf8(content) {
-                Ok(text) => (Some(text), ExtractStatus::Ready),
-                Err(_) => (None, ExtractStatus::Failed),
-            },
-            "pdf" => {
-                // Since pdf-extract is sync, we should ideally run it in blocking task
-                let path_clone = file_path.clone();
-                let output = tokio::task::spawn_blocking(move || {
-                    pdf_extract::extract_text(&path_clone)
-                }).await.map_err(|_| AppError::Internal)?;
-                
-                match output {
-                    Ok(text) => (Some(text), ExtractStatus::Ready),
-                    Err(e) => {
-                        tracing::error!("PDF Extraction failed: {:?}", e);
-                        (None, ExtractStatus::Failed)
-                    }
-                }
-            },
-            _ => (None, ExtractStatus::Pending), // Docx or others not yet supported
+        let (extracted_text, status) = match extraction_service
+            .extract_text(&extension, &file_path)
+            .await
+        {
+            Ok(Some(text)) => (Some(text), ExtractStatus::Ready),
+            Ok(None) => (None, ExtractStatus::Pending),
+            Err(e) => {
+                tracing::error!("Extraction failed for {:?}: {:?}", file_path, e);
+                (None, ExtractStatus::Failed)
+            }
         };
 
         let material = LearningMaterial {
