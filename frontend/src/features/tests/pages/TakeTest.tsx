@@ -30,6 +30,7 @@ export const TakeTest = () => {
   const [result, setResult] = useState<TestResultResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -103,6 +104,9 @@ export const TakeTest = () => {
       );
   }
 
+  const canGoPrev = activeIndex > 0;
+  const canGoNext = activeIndex < questions.length - 1;
+
   return (
     <Container maxWidth="md" sx={{ my: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -114,69 +118,99 @@ export const TakeTest = () => {
         </Button>
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {questions.map((q, idx) => (
-          <Paper key={q.id} elevation={2} sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
-              <Chip label={`Q${idx + 1}`} color="primary" size="small" />
-              <Typography variant="h6">{q.prompt}</Typography>
-            </Box>
-            
-            <Divider sx={{ mb: 2 }} />
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+        <Button
+          variant="outlined"
+          onClick={() => setActiveIndex((index) => Math.max(0, index - 1))}
+          disabled={!canGoPrev}
+        >
+          ← Prev
+        </Button>
+        <Typography variant="body2" color="text.secondary">
+          Question {activeIndex + 1} of {questions.length}
+        </Typography>
+        <Button
+          variant="outlined"
+          onClick={() => setActiveIndex((index) => Math.min(questions.length - 1, index + 1))}
+          disabled={!canGoNext}
+        >
+          Next →
+        </Button>
+      </Box>
 
-            <Box sx={{ ml: 2 }}>
-                {q.question_type === 'single' && (
-                <RadioGroup
-                    value={answers[q.id] || ''}
-                    onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                >
-                    {q.options.map((opt) => (
-                    <FormControlLabel
-                        key={opt}
-                        value={opt}
-                        control={<Radio />}
-                        label={opt}
-                        sx={{ mb: 1 }}
-                    />
-                    ))}
-                </RadioGroup>
-                )}
+      <Box sx={{ overflow: 'hidden' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            transition: 'transform 300ms ease',
+            transform: `translateX(-${activeIndex * 100}%)`,
+          }}
+        >
+          {questions.map((q, idx) => (
+            <Box key={q.id} sx={{ minWidth: '100%' }}>
+              <Paper elevation={2} sx={{ p: 4 }}>
+                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                  <Chip label={`Q${idx + 1}`} color="primary" size="small" />
+                  <Typography variant="h6">{q.prompt}</Typography>
+                </Box>
 
-                {q.question_type === 'multiple' && (
-                <FormGroup>
-                    {q.options.map((opt) => (
-                    <FormControlLabel
-                        key={opt}
-                        control={
-                        <Checkbox
-                            checked={isMultiSelected(q.id, opt)}
-                            onChange={(e) => handleMultiSelectChange(q.id, opt, e.target.checked)}
+                <Divider sx={{ mb: 2 }} />
+
+                <Box sx={{ ml: 2 }}>
+                    {q.question_type === 'single' && (
+                    <RadioGroup
+                        value={answers[q.id] || ''}
+                        onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                    >
+                        {q.options.map((opt) => (
+                        <FormControlLabel
+                            key={opt}
+                            value={opt}
+                            control={<Radio />}
+                            label={opt}
+                            sx={{ mb: 1 }}
                         />
-                        }
-                        label={opt}
-                    />
-                    ))}
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                        * Select all that apply
-                    </Typography>
-                </FormGroup>
-                )}
+                        ))}
+                    </RadioGroup>
+                    )}
 
-                {q.question_type === 'blank' && (
-                    <Box sx={{ mt: 2 }}>
-                        <TextField 
-                            fullWidth
-                            label="Your Answer"
-                            variant="outlined"
-                            value={answers[q.id] || ''}
-                            onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                            placeholder="Type your answer here..."
+                    {q.question_type === 'multiple' && (
+                    <FormGroup>
+                        {q.options.map((opt) => (
+                        <FormControlLabel
+                            key={opt}
+                            control={
+                            <Checkbox
+                                checked={isMultiSelected(q.id, opt)}
+                                onChange={(e) => handleMultiSelectChange(q.id, opt, e.target.checked)}
+                            />
+                            }
+                            label={opt}
                         />
-                    </Box>
-                )}
+                        ))}
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                            * Select all that apply
+                        </Typography>
+                    </FormGroup>
+                    )}
+
+                    {q.question_type === 'blank' && (
+                        <Box sx={{ mt: 2 }}>
+                            <TextField 
+                                fullWidth
+                                label="Your Answer"
+                                variant="outlined"
+                                value={answers[q.id] || ''}
+                                onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+                                placeholder="Type your answer here..."
+                            />
+                        </Box>
+                    )}
+                </Box>
+              </Paper>
             </Box>
-          </Paper>
-        ))}
+          ))}
+        </Box>
       </Box>
 
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
